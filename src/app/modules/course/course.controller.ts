@@ -7,12 +7,11 @@ import pick from '../../../shared/pick';
 import { courseFilterableFields } from './course.constant';
 
 const createCourse = catchAsync(async (req: Request, res: Response) => {
-  console.log(req.body);
   const result = await CourseService.createCourse(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Course created successufully',
+    message: 'Course created successfully',
     data: result,
   });
 });
@@ -41,16 +40,16 @@ const getSingleCourse = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// const updateOneInDB = catchAsync(async (req: Request, res: Response) => {
-//     const { id } = req.params;
-//     const result = await CourseService.updateOneInDB(id, req.body);
-//     sendResponse(res, {
-//         statusCode: httpStatus.OK,
-//         success: true,
-//         message: 'Course updated successfully',
-//         data: result
-//     });
-// })
+const updateCourse = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await CourseService.updateCourse(id, req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Course updated successfully',
+    data: result,
+  });
+});
 
 const deleteCourse = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -63,9 +62,34 @@ const deleteCourse = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const assignFaculties = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await CourseService.assignFaculties(id, req.body.faculties);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Course faculty assign successfully',
+    data: result,
+  });
+});
+
+const removeFaculties = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await CourseService.removeFaculties(id, req.body.faculties);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Course faculty deleted successfully',
+    data: result,
+  });
+});
+
 export const CourseController = {
   createCourse,
   getAllCourse,
   getSingleCourse,
   deleteCourse,
+  updateCourse,
+  assignFaculties,
+  removeFaculties,
 };

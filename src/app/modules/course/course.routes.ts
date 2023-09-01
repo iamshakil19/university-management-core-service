@@ -16,15 +16,29 @@ router.post(
   CourseController.createCourse
 );
 
-//   router.patch(
-//     '/:id',
-//     validateRequest(CourseValidation.update),
-//     auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
-//     CourseController.updateOneInDB
-//   );
+router.patch(
+  '/:id',
+  validateRequest(CourseValidation.updateCourseZodSchema),
+  auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+  CourseController.updateCourse
+);
 
 router.delete(
   '/:id',
   auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
   CourseController.deleteCourse
+);
+
+router.post(
+  '/:id/assign-faculties',
+  validateRequest(CourseValidation.assignOrRemoveFaculty),
+  auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+  CourseController.assignFaculties
+);
+
+router.delete(
+  '/:id/remove-faculties',
+  validateRequest(CourseValidation.assignOrRemoveFaculty),
+  auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+  CourseController.removeFaculties
 );
