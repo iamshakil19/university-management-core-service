@@ -7,7 +7,10 @@ import {
 import prisma from '../../../shared/prisma';
 import ApiError from '../../../errors/ApiError';
 import httpStatus from 'http-status';
-import { ISemesterRegistrationFilter } from './semesterRegistration.interface';
+import {
+  IEnrollCoursePayload,
+  ISemesterRegistrationFilter,
+} from './semesterRegistration.interface';
 import { IPaginationOptions } from '../../../interfaces/pagination';
 import { IGenericResponse } from '../../../interfaces/common';
 import { paginationHelpers } from '../../../helpers/paginationHelper';
@@ -16,6 +19,7 @@ import {
   semesterRegistrationRelationalFieldsMapper,
   semesterRegistrationSearchableFields,
 } from './semesterRegistration.constant';
+import { studentSemesterRegistrationCourseService } from '../studentSemesterRegistrationCourse/studentSemesterRegistrationCourse.service';
 
 const createSemesterRegistration = async (
   data: SemesterRegistration
@@ -261,6 +265,117 @@ const startMyRegistration = async (
   };
 };
 
+const enrollIntoCourse = async (
+  userId: string,
+  payload: IEnrollCoursePayload
+): Promise<{ message: string }> => {
+  return studentSemesterRegistrationCourseService.enrollIntoCourse(
+    userId,
+    payload
+  );
+};
+
+const withdrawFromCourse = async (
+  userId: string,
+  payload: IEnrollCoursePayload
+): Promise<{ message: string }> => {
+  return studentSemesterRegistrationCourseService.withdrawFromCourse(
+    userId,
+    payload
+  );
+};
+
+const confirmMyRegistration = async (
+  userId: string
+): Promise<{ message: string }> => {
+  const semesterRegistration = await prisma.semesterRegistration.findFirst({
+    where: {
+      status: SemesterRegistrationStatus.ONGOING,
+    },
+  });
+
+  const studentSemesterRegistration =
+    await prisma.studentSemesterRegistration.findFirst({
+      where: {
+        semesterRegistration: { id: semesterRegistration?.id },
+        student: { studentId: userId },
+      },
+    });
+
+  if (!studentSemesterRegistration) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'You are not recognized for this semester'
+    );
+  }
+
+  if (studentSemesterRegistration.totalCreditsTaken === 0) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'You are not enrolled in any course'
+    );
+  }
+
+  if (
+    studentSemesterRegistration.totalCreditsTaken &&
+    semesterRegistration?.minCredit &&
+    semesterRegistration.maxCredit &&
+    (studentSemesterRegistration.totalCreditsTaken <
+      semesterRegistration?.minCredit ||
+      studentSemesterRegistration.totalCreditsTaken >
+        semesterRegistration?.maxCredit)
+  ) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `You can take only ${semesterRegistration.minCredit} to ${semesterRegistration.maxCredit}`
+    );
+  }
+
+  await prisma.studentSemesterRegistration.update({
+    where: {
+      id: studentSemesterRegistration.id,
+    },
+    data: {
+      isConfirmed: true,
+    },
+  });
+
+  return {
+    message: 'Your registration is confirmed',
+  };
+};
+
+const getMyRegistration = async (userId: string) => {
+  const semesterRegistration = await prisma.semesterRegistration.findFirst({
+    where: {
+      status: SemesterRegistrationStatus.ONGOING,
+    },
+    include: {
+      academicSemester: true,
+    },
+  });
+
+  const studentSemesterRegistration =
+    await prisma.studentSemesterRegistration.findFirst({
+      where: {
+        semesterRegistration: {
+          id: semesterRegistration?.id,
+        },
+        student: {
+          studentId: userId,
+        },
+      },
+      include: {
+        student: true,
+      },
+    });
+
+  return {
+    semesterRegistration,
+    studentSemesterRegistration,
+  };
+};
+
 export const semesterRegistrationService = {
   createSemesterRegistration,
   getAllSemesterRegistration,
@@ -268,4 +383,8 @@ export const semesterRegistrationService = {
   updateSemesterRegistration,
   deleteSemesterRegistration,
   startMyRegistration,
+  enrollIntoCourse,
+  withdrawFromCourse,
+  confirmMyRegistration,
+  getMyRegistration,
 };
