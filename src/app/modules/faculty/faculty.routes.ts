@@ -9,7 +9,19 @@ const router = express.Router();
 
 router.get('/', FacultyController.getAllFaculty);
 
+router.get(
+  '/my-courses',
+  auth(ENUM_USER_ROLE.FACULTY),
+  FacultyController.myCourses
+);
+
 router.get('/:id', FacultyController.getSingleFaculty);
+
+router.get(
+  '/my-course-students',
+  auth(ENUM_USER_ROLE.FACULTY),
+  FacultyController.getMyCourseStudents
+);
 
 router.post(
   '/',
