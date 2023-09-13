@@ -148,9 +148,7 @@ const createStudentEnrolledCourseDefaultMark = async (
 };
 
 const updateStudentMarks = async (payload: any) => {
-  console.log(payload);
   const { studentId, academicSemesterId, courseId, examType, marks } = payload;
-
   const studentEnrolledCourseMarks =
     await prisma.studentEnrolledCourseMark.findFirst({
       where: {
