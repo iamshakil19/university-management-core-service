@@ -11,6 +11,12 @@ router.get(
   StudentEnrolledCourseMarkController.getAllStudentCourseMark
 );
 
+router.get(
+  '/my-marks',
+  auth(ENUM_USER_ROLE.STUDENT),
+  StudentEnrolledCourseMarkController.getMyCourseMarks
+);
+
 router.patch(
   '/update-marks',
   StudentEnrolledCourseMarkController.updateStudentMarks
