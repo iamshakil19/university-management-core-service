@@ -241,7 +241,7 @@ const myCourses = async (
       const classSchedules = obj.offeredCourseClassSchedules;
 
       const existingCourse = acc.find(
-        (item: any) => item.couse?.id === course?.id
+        (item: any) => item.course?.id === course?.id
       );
       if (existingCourse) {
         existingCourse.sections.push({
