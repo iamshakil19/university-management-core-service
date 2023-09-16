@@ -13,6 +13,7 @@ router.get('/:id', AcademicSemesterController.getSingleSemester);
 router.post(
   '/',
   validateRequest(AcademicSemesterValidation.createAcademicSemesterZodSchema),
+  auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SUPER_ADMIN),
   AcademicSemesterController.createSemester
 );
 

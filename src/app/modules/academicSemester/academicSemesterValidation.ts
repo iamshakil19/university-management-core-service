@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const createAcademicSemesterZodSchema = z.object({
   body: z.object({
-    year: z.number({
+    year: z.string({
       required_error: 'Year is required',
     }),
     title: z.string({

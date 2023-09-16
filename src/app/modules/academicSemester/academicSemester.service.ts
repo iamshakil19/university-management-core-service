@@ -3,13 +3,30 @@ import { paginationHelpers } from '../../../helpers/paginationHelper';
 import { IPaginationOptions } from '../../../interfaces/pagination';
 import prisma from '../../../shared/prisma';
 import { IGenericResponse } from './../../../interfaces/common';
-import { academicSemesterSearchableFields } from './academicSemester.constant';
+import {
+  EVENT_ACADEMIC_SEMESTER_CREATED,
+  academicSemesterSearchableFields,
+  academicSemesterTitleCodeMapper,
+} from './academicSemester.constant';
 import { IAcademicSemesterFilters } from './academicSemester.interface';
+import ApiError from '../../../errors/ApiError';
+import httpStatus from 'http-status';
+import { RedisClient } from '../../../shared/redis';
 
 const createAcademicSemester = async (
   data: AcademicSemester
 ): Promise<AcademicSemester> => {
+  if (academicSemesterTitleCodeMapper[data.title] !== data.code) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid semester code');
+  }
   const result = await prisma.academicSemester.create({ data });
+
+  if (result) {
+    await RedisClient.publish(
+      EVENT_ACADEMIC_SEMESTER_CREATED,
+      JSON.stringify(result)
+    );
+  }
   return result;
 };
 
@@ -41,7 +58,6 @@ const getAllSemester = async (
       })),
     });
   }
-  console.log(options);
 
   const whereConditions: Prisma.AcademicSemesterWhereInput =
     andConditions.length > 0 ? { AND: andConditions } : {};
@@ -72,8 +88,6 @@ const getAllSemester = async (
 const getSingleSemester = async (
   id: string
 ): Promise<AcademicSemester | null> => {
-  console.log(id);
-
   const result = await prisma.academicSemester.findUnique({
     where: {
       id,
@@ -111,5 +125,5 @@ export const AcademicSemesterService = {
   getAllSemester,
   getSingleSemester,
   deleteSemester,
-  updateSemester
+  updateSemester,
 };
