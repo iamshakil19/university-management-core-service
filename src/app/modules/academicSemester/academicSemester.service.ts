@@ -5,6 +5,7 @@ import prisma from '../../../shared/prisma';
 import { IGenericResponse } from './../../../interfaces/common';
 import {
   EVENT_ACADEMIC_SEMESTER_CREATED,
+  EVENT_ACADEMIC_SEMESTER_DELETED,
   EVENT_ACADEMIC_SEMESTER_UPDATED,
   academicSemesterSearchableFields,
   academicSemesterTitleCodeMapper,
@@ -20,6 +21,17 @@ const createAcademicSemester = async (
   if (academicSemesterTitleCodeMapper[data.title] !== data.code) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid semester code');
   }
+
+  const isExist = await prisma.academicSemester.findFirst({
+    where: { year: data.year, title: data.title },
+  });
+  if (isExist) {
+    throw new ApiError(
+      httpStatus.CONFLICT,
+      'Academic semester is already exists !'
+    );
+  }
+
   const result = await prisma.academicSemester.create({ data });
 
   if (result) {
@@ -122,6 +134,13 @@ const deleteSemester = async (id: string): Promise<AcademicSemester> => {
       id,
     },
   });
+
+  if (result) {
+    await RedisClient.publish(
+      EVENT_ACADEMIC_SEMESTER_DELETED,
+      JSON.stringify(result)
+    );
+  }
 
   return result;
 };
