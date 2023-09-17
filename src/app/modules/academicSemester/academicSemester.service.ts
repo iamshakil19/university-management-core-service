@@ -5,6 +5,7 @@ import prisma from '../../../shared/prisma';
 import { IGenericResponse } from './../../../interfaces/common';
 import {
   EVENT_ACADEMIC_SEMESTER_CREATED,
+  EVENT_ACADEMIC_SEMESTER_UPDATED,
   academicSemesterSearchableFields,
   academicSemesterTitleCodeMapper,
 } from './academicSemester.constant';
@@ -106,7 +107,12 @@ const updateSemester = async (
     },
     data: payload,
   });
-
+  if (result) {
+    await RedisClient.publish(
+      EVENT_ACADEMIC_SEMESTER_UPDATED,
+      JSON.stringify(result)
+    );
+  }
   return result;
 };
 
