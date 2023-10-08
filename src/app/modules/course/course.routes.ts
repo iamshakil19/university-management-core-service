@@ -42,3 +42,6 @@ router.delete(
   auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
   CourseController.removeFaculties
 );
+
+
+export const courseRoutes = router;
